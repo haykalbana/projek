@@ -1,5 +1,3 @@
 # projek
-project akhir semester
+project mikrotik
 
- mono adalah nama seseorang tamvan
- dan mempunyai anak bernama fatih
