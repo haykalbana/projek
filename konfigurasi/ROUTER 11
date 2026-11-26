@@ -54,3 +54,27 @@ add chain=input action=drop
 add chain=forward connection-state=established,related action=accept
 add chain=forward connection-state=invalid action=drop
 add chain=forward action=accept
+
+IP LAN FINAL
+
+ip address
+add address=192.168.11.1/24 interface=ether3 comment=VLAN10
+add address=192.168.31.1/24 interface=ether4 comment=VLAN30
+add address=192.168.21.1/24 interface=ether5 comment=VLAN20
+
+DHCP FINAL
+
+ip pool
+add name=pool11v10 ranges=192.168.11.100-192.168.11.200
+add name=pool11v20 ranges=192.168.21.100-192.168.21.200
+add name=pool11v30 ranges=192.168.31.100-192.168.31.200
+
+ip dhcp-server
+add name=dhcp11v10 interface=ether3 address-pool=pool11v10 disabled=no
+add name=dhcp11v20 interface=ether5 address-pool=pool11v20 disabled=no
+add name=dhcp11v30 interface=ether4 address-pool=pool11v30 disabled=no
+
+ip dhcp-server network
+add address=192.168.11.0/24 gateway=192.168.11.1 dns-server=8.8.8.8
+add address=192.168.21.0/24 gateway=192.168.21.1 dns-server=8.8.8.8
+add address=192.168.31.0/24 gateway=192.168.31.1 dns-server=8.8.8.8
