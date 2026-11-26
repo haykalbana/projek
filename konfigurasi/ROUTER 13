@@ -1,1 +1,62 @@
+IP ADDRESS
 
+add address=10.10.13.2/30 interface=ether2 comment=LINK-R12
+add address=10.10.23.2/30 interface=ether1 comment=LINK-R11
+add address=192.168.33.1/24 interface=ether3 comment=VLAN30
+add address=192.168.13.1/24 interface=ether4 comment=VLAN10
+add address=192.168.23.1/24 interface=ether5 comment=VLAN20
+
+DHCP
+
+ip pool
+add name=pool13v10 ranges=192.168.13.100-192.168.13.200
+add name=pool13v20 ranges=192.168.23.100-192.168.23.200
+add name=pool13v30 ranges=192.168.33.100-192.168.33.200
+
+ip dhcp-server
+add name=dhcp13v10 interface=ether4 address-pool=pool13v10 disabled=no
+add name=dhcp13v20 interface=ether5 address-pool=pool13v20 disabled=no
+add name=dhcp13v30 interface=ether3 address-pool=pool13v30 disabled=no
+
+ip dhcp-server network
+add address=192.168.13.0/24 gateway=192.168.13.1 dns-server=8.8.8.8
+add address=192.168.23.0/24 gateway=192.168.23.1 dns-server=8.8.8.8
+add address=192.168.33.0/24 gateway=192.168.33.1 dns-server=8.8.8.8
+
+OSPF
+
+routing ospf instance
+add name=ospf1 router-id=13.13.13.13
+
+routing ospf area
+add name=backbone area-id=0.0.0.0 instance=ospf1
+
+routing ospf interface-template
+add networks=10.10.13.0/30 area=backbone
+add networks=10.10.23.0/30 area=backbone
+add networks=192.168.13.0/24 area=backbone
+add networks=192.168.23.0/24 area=backbone
+add networks=192.168.33.0/24 area=backbone
+
+FIREWALL
+
+ip firewall filter
+add chain=input connection-state=established,related action=accept
+add chain=input connection-state=invalid action=drop
+add chain=input protocol=icmp action=accept
+add chain=input protocol=ospf action=accept
+add chain=input protocol=udp dst-port=67 action=accept
+add chain=input action=drop
+
+add chain=forward connection-state=established,related action=accept
+add chain=forward connection-state=invalid action=drop
+add chain=forward action=accept
+
+LANGKAH TERAKHIR
+
+routing ospf interface-template
+add networks=10.10.13.0/30 area=backbone
+add networks=10.10.23.0/30 area=backbone
+add networks=192.168.13.0/24 area=backbone
+add networks=192.168.23.0/24 area=backbone
+add networks=192.168.33.0/24 area=backbone
