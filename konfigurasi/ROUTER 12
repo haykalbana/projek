@@ -46,3 +46,36 @@ add chain=input action=drop comment="Protect Router"
 add chain=forward connection-state=established,related action=accept
 add chain=forward connection-state=invalid action=drop
 add chain=forward action=accept
+
+IP LAN FINAL 
+
+ip address
+add address=192.168.22.1/24 interface=ether3 comment=VLAN20
+add address=192.168.12.1/24 interface=ether4 comment=VLAN10
+add address=192.168.32.1/24 interface=ether6 comment=VLAN30
+
+DHCP FINAL
+
+ip pool
+add name=pool12v10 ranges=192.168.12.100-192.168.12.200
+add name=pool12v20 ranges=192.168.22.100-192.168.22.200
+add name=pool12v30 ranges=192.168.32.100-192.168.32.200
+
+ip dhcp-server
+add name=dhcp12v10 interface=ether4 address-pool=pool12v10 disabled=no
+add name=dhcp12v20 interface=ether3 address-pool=pool12v20 disabled=no
+add name=dhcp12v30 interface=ether6 address-pool=pool12v30 disabled=no
+
+ip dhcp-server network
+add address=192.168.12.0/24 gateway=192.168.12.1 dns-server=8.8.8.8
+add address=192.168.22.0/24 gateway=192.168.22.1 dns-server=8.8.8.8
+add address=192.168.32.0/24 gateway=192.168.32.1 dns-server=8.8.8.8
+
+LANGKAH TERAKHIR
+
+routing ospf interface-template
+add networks=10.10.11.0/30 area=backbone
+add networks=10.10.13.0/30 area=backbone
+add networks=192.168.12.0/24 area=backbone
+add networks=192.168.22.0/24 area=backbone
+add networks=192.168.32.0/24 area=backbone
