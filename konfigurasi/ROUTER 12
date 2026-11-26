@@ -1,4 +1,5 @@
-ip address
+IP ADDRESS
+
 add address=10.10.11.1/30 interface=ether1 comment=LINK-R11
 add address=10.10.13.1/30 interface=ether2 comment=LINK-R13
 add address=192.168.12.20/24 interface=ether3 comment=VLAN20
@@ -6,8 +7,12 @@ add address=192.168.12.10/24 interface=ether4 comment=VLAN10
 add address=203.0.113.2/30 interface=ether5 comment=ISP
 add address=192.168.12.30/24 interface=ether6 comment=VLAN30
 
+DEFAULT ROUTE
+
 ip route
 add dst-address=0.0.0.0/0 gateway=203.0.113.1
+
+OSPF
 
 routing ospf instance
 add name=ospf1 router-id=12.12.12.12 originate-default=if-installed
@@ -22,8 +27,12 @@ add networks=192.168.12.10/24 area=backbone
 add networks=192.168.12.20/24 area=backbone
 add networks=192.168.12.30/24 area=backbone
 
+NAT
+
 ip firewall nat
 add chain=srcnat out-interface=ether5 action=masquerade
+
+FIREWALL
 
 ip firewall filter
 add chain=input connection-state=established,related action=accept
