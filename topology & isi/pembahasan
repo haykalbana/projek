@@ -1,1 +1,38 @@
+1. Arsitektur dan Desain Topologi
+Proyek ini mengimplementasikan simulasi jaringan komputer menggunakan perangkat lunak GNS3 dengan kombinasi tiga buah router MikroTik (R-11, R-12, dan R-13), sembilan klien virtual (VPCS), serta satu node Cloud3 sebagai gerbang (gateway) menuju jaringan eksternal/internet.
 
+Ketiga router utama dihubungkan membentuk topologi Full-Mesh (segitiga) melalui jalur point-to-point:
+
+R-12 ke R-11: Terhubung melalui antarmuka ether1 (R-12) ke ether1 (R-11).
+
+R-12 ke R-13: Terhubung melalui antarmuka ether2 (R-12) ke ether2 (R-13).
+
+R-11 ke R-13: Terhubung melalui antarmuka ether2 (R-11) ke ether1 (R-13).
+
+Desain mesh antar-router ini bertujuan untuk menyediakan redundansi jalur (failover). Apabila salah satu tautan utama antar-router terputus, lalu lintas data tetap dapat dialihkan melalui router lainnya tanpa memutus koneksi jaringan secara keseluruhan.
+
+2. Segmentasi Jaringan dan Pembagian VLANPada sisi jaringan lokal (LAN), setiap router melayani tiga segmen jaringan berbeda yang merepresentasikan tiga grup VLAN (VLAN 10, VLAN 20, dan VLAN 30) yang diuji menggunakan klien VPCS
+
+Analisis Segmentasi:
+
+Isolasi & Manajemen Trafik: Pemisahan klien ke dalam segmen VLAN 10, 20, dan 30 di setiap cabang berfungsi untuk membatasi broadcast domain, meningkatkan keamanan antar-divisi/grup pengguna, serta mempermudah manajemen pengalamatan IP dan alokasi bandwidth.
+
+Inter-VLAN & Inter-Router Communication: Karena klien terhubung langsung ke antarmuka fisik router (atau menggunakan sub-interface VLAN pada skenario Router-on-a-Stick / Bridge VLAN), router bertindak sebagai default gateway yang menangani proses routing antar-VLAN di dalam satu router maupun antar-router.
+
+
+3. Mekanisme Routing dan Akses Eksternal
+Agar seluruh klien di R-11, R-12, dan R-13 dapat saling berkomunikasi dan terhubung ke internet, sistem ini menerapkan mekanisme berikut:
+
+1. Dynamic / Static Routing: Diperlukan konfigurasi routing (seperti OSPF, RIP, atau Static Routing) pada R-11, R-12, dan R-13 agar setiap router saling mengetahui tabel rute jaringan lokal milik router tetangganya. Penggunaan dynamic routing seperti OSPF sangat direkomendasikan pada topologi segitiga ini karena mampu menghitung cost jalur terpendek dan melakukan konvergensi otomatis saat terjadi putus jalur.
+2. NAT (Network Address Translation): Router R-12 berperan sebagai edge/gateway router yang terhubung langsung ke Cloud3 (ether5). Agar klien ber-IP privat di seluruh jaringan (R-11, R-12, dan R-13) dapat mengakses jaringan luar melalui Cloud3, diterapkan konfigurasi Source NAT (Masquerade) pada R-12 dengan out-interface mengarah ke ether5, disertai distribusi default route (0.0.0.0/0) ke R-11 dan R-13.
+
+4. Parameter Pengujian Kinerja (Verifikasi)
+Keberhasilan implementasi proyek jaringan pada topologi ini dapat divalidasi melalui beberapa skenario pengujian:
+
+Uji Konektivitas Lokal (Intra-Router): Melakukan ping antar-VPCS dalam satu router (misal antara VLAN 10, 20, dan 30 pada R-11) untuk memastikan Inter-VLAN routing berjalan normal.
+
+Uji Konektivitas Antar-Cabang (Inter-Router): Melakukan ping dan trace dari klien di R-11 menuju klien di R-13 maupun R-12 untuk memastikan tabel routing telah terdistribusi dengan benar.
+
+Uji Redundansi (Failover): Memutus salah satu kabel antar-router (misal jalur R-11 ke R-13) saat melakukan ping berkelanjutan, untuk membuktikan bahwa trafik otomatis dialihkan melewati R-12.
+
+Uji Akses Internet (NAT): Melakukan ping ke IP publik (seperti 8.8.8.8) dari setiap VPCS untuk memastikan aturan Masquerade dan default route berfungsi di seluruh cabang.
