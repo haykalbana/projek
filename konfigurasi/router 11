@@ -1,0 +1,56 @@
+IP ADDRESS
+
+ip address
+remove [find where interface=ether3]
+remove [find where interface=ether4]
+remove [find where interface=ether5]
+
+add address=192.168.110.1/24 interface=ether3
+add address=192.168.130.1/24 interface=ether4
+add address=192.168.120.1/24 interface=ether5
+
+DHCP
+
+ip pool
+add name=pool110 ranges=192.168.110.100-192.168.110.200
+add name=pool120 ranges=192.168.120.100-192.168.120.200
+add name=pool130 ranges=192.168.130.100-192.168.130.200
+
+ip dhcp-server
+add name=dhcp110 interface=ether3 address-pool=pool110 disabled=no
+add name=dhcp120 interface=ether5 address-pool=pool120 disabled=no
+add name=dhcp130 interface=ether4 address-pool=pool130 disabled=no
+
+ip dhcp-server network
+add address=192.168.110.0/24 gateway=192.168.110.1 dns-server=8.8.8.8
+add address=192.168.120.0/24 gateway=192.168.120.1 dns-server=8.8.8.8
+add address=192.168.130.0/24 gateway=192.168.130.1 dns-server=8.8.8.8
+
+OSPF
+
+routing ospf instance
+add name=ospf1 router-id=11.11.11.11
+
+routing ospf area
+add name=backbone area-id=0.0.0.0 instance=ospf1
+
+routing ospf interface-template
+add networks=10.10.11.0/30 area=backbone
+add networks=10.10.23.0/30 area=backbone
+add networks=192.168.110.0/24 area=backbone
+add networks=192.168.120.0/24 area=backbone
+add networks=192.168.130.0/24 area=backbone
+
+FIREWALL
+
+ip firewall filter
+add chain=input connection-state=established,related action=accept
+add chain=input connection-state=invalid action=drop
+add chain=input protocol=icmp action=accept
+add chain=input protocol=ospf action=accept
+add chain=input protocol=udp dst-port=67 action=accept
+add chain=input action=drop
+
+add chain=forward connection-state=established,related action=accept
+add chain=forward connection-state=invalid action=drop
+add chain=forward action=accept
